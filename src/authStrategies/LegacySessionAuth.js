@@ -14,10 +14,16 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {string} options.session.WAToken2
  */
 class LegacySessionAuth extends BaseAuthStrategy {
-    constructor({ session, restartOnAuthFail }={}) {
+    constructor({ session, restartOnAuthFail, clientId }={}) {
         super();
         this.session = session;
         this.restartOnAuthFail = restartOnAuthFail;
+
+        const idRegex = /^[-_\w]+$/i;
+        if (clientId && !idRegex.test(clientId)) {
+            throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
+        }
+        this.clientId = clientId;
     }
 
     async afterBrowserInitialized() {

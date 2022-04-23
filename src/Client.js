@@ -120,12 +120,29 @@ class Client extends EventEmitter {
 
         await this.authStrategy.afterBrowserInitialized();
         await this.initWebVersionCache();
+        
+        await page.evaluate((clientId) => {
+            window.clientId = clientId;
+            document.title = `Инстанс ${clientId}`;
+            console.log(`Инстанс: ${clientId}`);
+        }, this.authStrategy.clientId)
 
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
             referer: 'https://whatsapp.com/'
         });
+        
+        await page.evaluate((clientId) => {
+            window.clientId = clientId;
+            document.title = `Инстанс ${clientId}`;
+            console.log(`Инстанс: ${clientId}`);
+            setInterval(() => {
+                if (!document.title.includes('Инстанс')) {
+                    document.title = `Инстанс ${clientId}	|	${document.title}`;
+                }
+            }, 5000)
+        }, this.authStrategy.clientId)
 
         await page.evaluate(`function getElementByXpath(path) {
             return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -175,6 +192,14 @@ class Client extends EventEmitter {
 
         const INTRO_IMG_SELECTOR = '[data-icon=\'search\']';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
+        
+        /*
+        await page.evaluate((clientId) => {
+            document.title = 'WAWeb ' + clientId;
+            window.clientId = clientId;
+            console.log('ID:', window.clientId);
+        }, this.authStrategy.clientId)
+        */
 
         // Checks which selector appears first
         const needAuthentication = await Promise.race([
@@ -189,6 +214,14 @@ class Client extends EventEmitter {
                     .catch((err) => resolve(err));
             })
         ]);
+        
+        /*
+        await page.evaluate((clientId) => {
+            document.title = 'WAWeb ' + clientId;
+            window.clientId = clientId;
+            console.log('ID:', window.clientId);
+        }, this.authStrategy.clientId)
+        */
 
         // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
         if (needAuthentication instanceof Error) throw needAuthentication;
@@ -321,6 +354,13 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
+        /*
+        await page.evaluate((clientId) => {
+            document.title = 'WAWeb ' + clientId;
+            window.clientId = clientId;
+            console.log('ID:', window.clientId);
+        }, this.authStrategy.clientId)
+        */
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
         /**
