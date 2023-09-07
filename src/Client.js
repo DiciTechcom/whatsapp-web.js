@@ -828,6 +828,7 @@ class Client extends EventEmitter {
     async destroy() {
         await this.pupBrowser.close();
         await this.authStrategy.destroy();
+        this.emit(Events.DISCONNECTED, 'DISCONNECTED');
     }
 
     /**
@@ -846,6 +847,7 @@ class Client extends EventEmitter {
         }
 
         await this.authStrategy.logout();
+        this.emit(Events.DISCONNECTED, 'DISCONNECTED');
     }
 
     /**
