@@ -30,7 +30,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
- * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
+ * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
  * @param {object} options.proxyAuthentication - Proxy Authentication object.
  *
@@ -107,6 +107,8 @@ class Client extends EventEmitter {
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page = (await browser.pages())[0];
         }
+
+        await page.deleteCookie({ name: 'wa_build', domain: '.web.whatsapp.com', path: '/' });
 
         if (this.options.proxyAuthentication !== undefined) {
             await page.authenticate(this.options.proxyAuthentication);
@@ -670,10 +672,10 @@ class Client extends EventEmitter {
              */
             this.emit(Events.CHAT_REMOVED, _chat);
         });
-        
+
         await page.exposeFunction('onArchiveChatEvent', async (chat, currState, prevState) => {
             const _chat = await this.getChatById(chat.id);
-            
+
             /**
              * Emitted when a chat is archived/unarchived
              * @event Client#chat_archived
